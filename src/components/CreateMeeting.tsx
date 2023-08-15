@@ -1,21 +1,20 @@
 import { Button, Col, Input, message, Row } from 'antd'
-import { useEffect, useState } from 'react'
-import { createConference } from '../api'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MeetingManage } from '../api/MeetingManage'
+import SfuApi from 'client-sfu-sdk'
+// 导入中间件连接mobx和react 完成响应式变化
+import { observer } from 'mobx-react-lite'
+import { useStore } from '../store'
+import { renderParticipant } from '../core/renderParticipant'
 
-export const CreateMeeting = () => {
+function CreateMeeting() {
   const [roomName, setRoomName] = useState('') // 会议名
   const [useName, setUseName] = useState('') // 用户名
   const [secret, setSecret] = useState('') // 密码
-  const [limitNum, setLimitNum] = useState<Number>(2) // 限制人数
+  const [limitNum, setLimitNum] = useState<number>(2) // 限制人数
 
-  const [meetingManage, setMeetingManage] = useState<MeetingManage>() // 初始化会控管理
-
-  useEffect(() => {
-    const mm = new MeetingManage()
-    setMeetingManage(mm)
-  }, [])
+  // 状态管理
+  const { sfuApiStore, meetingSetStore } = useStore()
 
   const navigate = useNavigate()
 
@@ -39,34 +38,67 @@ export const CreateMeeting = () => {
       messageTip('密码不能为空')
       return
     }
-    // 查询url、token
-    const res = await createConference({
-      secret: secret,
-      room: roomName,
-      useName: useName,
-      limitNum: limitNum,
-      ...meetingManage,
+
+    let sfuApi = new SfuApi('http://localhost', '5000')
+
+    // 监听新成员入会
+    sfuApi.on('ParticipantConnect', (str: any) => {
+      str.forEach((participant: any) => {
+        renderParticipant(participant, false, sfuApi)
+      })
     })
 
-    if (res.data) {
-      const params: { [key: string]: string } = {
-        url: res['data'].url,
-        token: res['data'].token,
-        videoEnabled: '1',
-        audioEnabled: '1',
-        simulcast: '1',
-        dynacast: '1',
-        adaptiveStream: '1',
+    const result: any = await sfuApi.createMeeting({
+      password: secret,
+      roomName: roomName,
+      useName: useName,
+      maxMembers: limitNum,
+      allowMemOpenCam: meetingSetStore.allowMemOpenCam,
+      allowMemRename: meetingSetStore.allowMemRename,
+      allowMemOpenMic: meetingSetStore.allowMemOpenMic,
+      allowMemHandsUp: meetingSetStore.allowMemHandsUp,
+      allowMemShareScreen: meetingSetStore.allowMemShareScreen,
+      micOpen: meetingSetStore.micOpen,
+      allowMemJoinSound: meetingSetStore.allowMemJoinSound,
+    })
+
+    setTimeout(() => {
+      console.log('res-sfuApi', sfuApi)
+      // stroe 赋值
+      sfuApiStore.setSfuApi(sfuApi)
+
+      const params: { [key: string]: any } = {
+        localParticipant: JSON.stringify(result.localParticipant),
+        participants: JSON.stringify(Array.from(result.participants.entries())),
       }
-      // navigate({
-      //   pathname: '/room',
-      //   search: '?' + new URLSearchParams(params).toString(),
-      // });
+
       navigate({
         pathname: '/emcee',
         search: '?' + new URLSearchParams(params).toString(),
       })
-    }
+    }, 3000)
+
+    // 查询url、token
+    // const res = await createConference({
+    //   password: secret,
+    //   roomName: roomName,
+    //   useName: useName,
+    //   maxMembers: limitNum,
+    //   ...meetingManage,
+    // })
+
+    // if (res.data) {
+    //   const params: { [key: string]: string } = {
+    //     url: res['data'].url,
+    //     token: res['data'].token,
+    //     videoEnabled: '1',
+    //     audioEnabled: '1',
+    //     simulcast: '1',
+    //     dynacast: '1',
+    //     adaptiveStream: '1',
+    //   }
+
+    // }
   }
 
   return (
@@ -130,3 +162,5 @@ export const CreateMeeting = () => {
     </div>
   )
 }
+
+export default observer(CreateMeeting)

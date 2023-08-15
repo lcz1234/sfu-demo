@@ -1,22 +1,45 @@
 import { Button, Col, Row, Popover } from 'antd'
 import { useState, useEffect } from 'react'
 import { CheckOutlined } from '@ant-design/icons'
-import { MeetingManage } from './api/MeetingManage'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { renderParticipant } from './core/renderParticipant'
 import SfuApi from 'client-sfu-sdk'
+// 导入中间件连接mobx和react 完成响应式变化
+import { observer } from 'mobx-react-lite'
+import { useStore } from './store'
 
-export const EmceePage = () => {
+function EmceePage() {
   const [leftSize, setLeftSize] = useState(24) // 初始化左边大小
   const [rightSize, setRightSize] = useState(0) // 初始化右边大小
   const [memberFlag, setMemberFlag] = useState(false) // 右侧成员列表切换
   const [exitFlag, setExitFlag] = useState(true) // 结束会议切换
   const [memberList, setMemberList] = useState<string[]>([]) // 成员列表
 
-  const [meetingManage, setMeetingManage] = useState<MeetingManage>() // 初始化会控管理
+  // 状态管理
+  const { sfuApiStore, meetingSetStore } = useStore()
 
-  // useEffect(() => {
-  //   const mm = new MeetingManage();
-  //   setMeetingManage(mm);
-  // }, [meetingManage]);
+  const query = new URLSearchParams(useLocation().search)
+  const participant: any = query.get('localParticipant')
+  const localParticipant: any = JSON.parse(participant)
+  console.log('localParticipant', localParticipant)
+
+  let sfuApi: SfuApi = sfuApiStore.sfuApi
+
+  useEffect(() => {
+    renderParticipant(sfuApi.room.localParticipant, false, sfuApi)
+    sfuApi.room.participants.forEach((participant: any) => {
+      renderParticipant(participant, false, sfuApi)
+    })
+  }, [sfuApi])
+
+  const participantsq: any = query.get('participants')
+  const participants = JSON.parse(participantsq)
+  //console.log('participants', participants)
+
+  const navigate = useNavigate()
+  const onLeave = () => {
+    navigate('/')
+  }
 
   // 管理成员列表动态切换
   const viewMember = () => {
@@ -33,9 +56,8 @@ export const EmceePage = () => {
 
   // 结束会议
   const endMeeting = () => {
-    const c = new SfuApi('http://127.0.0.1', '5000')
-    c.createMeeting()
     console.log('结束会议,并返回首页')
+    onLeave()
   }
 
   // 退出会议
@@ -95,54 +117,48 @@ export const EmceePage = () => {
     </div>
   )
 
-  const allowMemOpenCamClick = () => {
-    const mm = meetingManage
-    mm?.setAllowMemOpenCam()
-    setMeetingManage(mm)
-  }
-
   // 会控管理内容
   const meetingSetCon = (
-    <div>
-      <div onClick={allowMemOpenCamClick}>
+    <div className="meetset">
+      <div onClick={() => meetingSetStore.setAllowMemOpenCam()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemOpenCam ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemOpenCam ? <CheckOutlined /> : null}
         </div>
         允许成员开启视频
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setAllowMemRename()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemRename ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemRename ? <CheckOutlined /> : null}
         </div>
         允许成员改名
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setAllowMemOpenMic()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemOpenMic ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemOpenMic ? <CheckOutlined /> : null}
         </div>
         允许成员自我解除静音
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setAllowMemHandsUp()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemHandsUp ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemHandsUp ? <CheckOutlined /> : null}
         </div>
         允许成员举手
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setAllowMemShareScreen()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemShareScreen ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemShareScreen ? <CheckOutlined /> : null}
         </div>
         允许屏幕共享
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setMicOpen()}>
         <div className="iconStyle">
-          {meetingManage?.micOpen ? <CheckOutlined /> : null}
+          {meetingSetStore.micOpen === 0 ? <CheckOutlined /> : null}
         </div>
         成员入会时静音
       </div>
-      <div>
+      <div onClick={() => meetingSetStore.setAllowMemJoinSound()}>
         <div className="iconStyle">
-          {meetingManage?.allowMemJoinSound ? <CheckOutlined /> : null}
+          {meetingSetStore.allowMemJoinSound ? <CheckOutlined /> : null}
         </div>
         成员进入时播放提示音
       </div>
@@ -154,7 +170,7 @@ export const EmceePage = () => {
       <Row className="upContainer">
         <Col span={leftSize}>
           <div className="leftContainer">
-            左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器左边容器
+            <div id="participants-area"></div>
           </div>
           <div className="leftDownContainer">
             <Row>
@@ -212,3 +228,5 @@ export const EmceePage = () => {
     </div>
   )
 }
+
+export default observer(EmceePage)

@@ -3,37 +3,37 @@
  */
 export class MeetingManage {
   // 允许成员开启视频
-  allowMemOpenCam: boolean;
+  allowMemOpenCam: boolean
 
   // 允许成员改名
-  allowMemRename: boolean;
+  allowMemRename: boolean
 
   // 允许成员自我解除静音
-  allowMemOpenMic: boolean;
+  allowMemOpenMic: boolean
 
   // 允许成员举手
-  allowMemHandsUp: boolean;
+  allowMemHandsUp: boolean
 
   // 允许屏幕共享
-  allowMemShareScreen: boolean;
+  allowMemShareScreen: boolean
 
   // 成员入会时静音 1-打开，0-静音
-  micOpen: Number;
+  micOpen: Number
 
   // 成员进入时播放提示音
-  allowMemJoinSound: boolean;
+  allowMemJoinSound: boolean
 
   constructor() {
-    this.allowMemOpenCam = true;
-    this.allowMemRename = true;
-    this.allowMemOpenMic = true;
-    this.allowMemHandsUp = true;
-    this.allowMemShareScreen = true;
-    this.micOpen = 0;
-    this.allowMemJoinSound = false;
+    this.allowMemOpenCam = true
+    this.allowMemRename = true
+    this.allowMemOpenMic = true
+    this.allowMemHandsUp = true
+    this.allowMemShareScreen = true
+    this.micOpen = 0
+    this.allowMemJoinSound = false
   }
 
   setAllowMemOpenCam() {
-    this.allowMemOpenCam = !this.allowMemOpenCam;
+    this.allowMemOpenCam = !this.allowMemOpenCam
   }
 }

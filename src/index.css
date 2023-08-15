@@ -233,3 +233,7 @@ a:hover {
   display: inline-block;
   width: 20px;
 }
+
+.meetset div {
+  cursor: pointer;
+}

@@ -7,7 +7,7 @@ const path = require('path')
 module.exports = {
   //配置代理解决跨域
   devServer: {
-    port: 8000,
+    port: 8010,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:18091',

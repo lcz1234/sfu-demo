@@ -1,6 +1,6 @@
 import { Tabs, Col, Row } from 'antd'
 import type { TabsProps } from 'antd'
-import { CreateMeeting } from './CreateMeeting'
+import CreateMeeting from './CreateMeeting'
 import { JoinMeeting } from './JoinMeeting'
 
 const onChange = (key: string) => {
